@@ -1507,7 +1507,7 @@ def main():
     # ── 환경변수 우선, 없으면 대화형 입력 (GitHub Actions 호환) ──
     GMAIL_USER = os.environ.get("GMAIL_USER", "")
     GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
-    RECIPIENT = os.environ.get("RECIPIENT_EMAIL", "qkrwltn28@gmail.com,chelseaj960126@gmail.com")
+    RECIPIENT = os.environ.get("RECIPIENT_EMAIL", "qkrwltn28@gmail.com,chelseaj960126@gmail.com,totori1905@gmail.com")
     CI_MODE = bool(GMAIL_USER and GMAIL_APP_PASSWORD)
 
     if CI_MODE:
