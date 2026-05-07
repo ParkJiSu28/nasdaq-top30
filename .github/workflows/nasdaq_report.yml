@@ -1,0 +1,46 @@
+name: NASDAQ Daily Report
+
+on:
+  # 매일 한국시간 06:00 실행 (UTC 21:00)
+  schedule:
+    - cron: '0 21 * * 1-5'  # UTC 21:00 = KST 06:00, 미장 마감 후
+
+  # 수동 실행 가능
+  workflow_dispatch:
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      GMAIL_USER: ${{ secrets.GMAIL_USER }}
+      GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+      RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+      PYTHONIOENCODING: utf-8
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run NASDAQ Top 30 analysis
+        run: python nasdaq_top30.py
+
+      - name: Upload report artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nasdaq-report-${{ github.run_number }}
+          path: |
+            nasdaq_report_*.html
+            nasdaq_top30_*.csv
+          retention-days: 30
