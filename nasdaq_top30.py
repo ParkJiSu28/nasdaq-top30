@@ -1381,9 +1381,15 @@ def build_html_report(df, sector_summary, news_data, indicators):
 #  이메일 발송
 # ═══════════════════════════════════════════════════════════════
 
-def send_email(html_content, recipient, smtp_user, smtp_password, images=None):
-    """HTML 이메일 발송 (CID 이미지 첨부 지원)"""
+def send_email(html_content, recipients, smtp_user, smtp_password, images=None):
+    """HTML 이메일 발송 (CID 이미지 첨부, 복수 수신자 지원)"""
     from email.mime.image import MIMEImage
+
+    # 복수 수신자 처리: 콤마 구분 문자열 또는 리스트
+    if isinstance(recipients, str):
+        recipient_list = [r.strip() for r in recipients.split(",") if r.strip()]
+    else:
+        recipient_list = list(recipients)
 
     today_str = datetime.now().strftime("%Y-%m-%d")
 
@@ -1391,7 +1397,7 @@ def send_email(html_content, recipient, smtp_user, smtp_password, images=None):
     msg = MIMEMultipart("related")
     msg["Subject"] = f"[{today_str}] NASDAQ 일일 브리핑 — 거래대금 상위 30"
     msg["From"] = smtp_user
-    msg["To"] = recipient
+    msg["To"] = ", ".join(recipient_list)
 
     # alternative: text + html
     msg_alt = MIMEMultipart("alternative")
@@ -1414,8 +1420,8 @@ def send_email(html_content, recipient, smtp_user, smtp_password, images=None):
         with smtplib.SMTP("smtp.gmail.com", 587) as server:
             server.starttls()
             server.login(smtp_user, smtp_password)
-            server.sendmail(smtp_user, recipient, msg.as_string())
-        print(f"  [OK] 이메일 발송 완료 → {recipient}")
+            server.sendmail(smtp_user, recipient_list, msg.as_string())
+        print(f"  [OK] 이메일 발송 완료 → {', '.join(recipient_list)}")
         return True
     except Exception as e:
         print(f"  [FAIL] 이메일 발송 실패: {e}")
@@ -1501,7 +1507,7 @@ def main():
     # ── 환경변수 우선, 없으면 대화형 입력 (GitHub Actions 호환) ──
     GMAIL_USER = os.environ.get("GMAIL_USER", "")
     GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
-    RECIPIENT = os.environ.get("RECIPIENT_EMAIL", "qkrwltn28@gmail.com")
+    RECIPIENT = os.environ.get("RECIPIENT_EMAIL", "qkrwltn28@gmail.com,chelseaj960126@gmail.com")
     CI_MODE = bool(GMAIL_USER and GMAIL_APP_PASSWORD)
 
     if CI_MODE:
